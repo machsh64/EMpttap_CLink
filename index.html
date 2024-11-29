@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Empttap</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f3f4f7;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            background-color: #fff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            padding: 30px;
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+        }
+        h1 {
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: #333;
+        }
+        input {
+            width: 80%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 2px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+        input:focus {
+            border-color: #3498db;
+        }
+        button {
+            background-color: #3498db;
+            color: #fff;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 4px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        .result {
+            margin-top: 20px;
+            background-color: #f9f9f9;
+            padding: 15px;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .result p {
+            font-size: 16px;
+            color: #333;
+        }
+        .result a {
+            color: #3498db;
+            text-decoration: none;
+            font-weight: bold;
+            transition: color 0.3s;
+        }
+        .result a:hover {
+            color: #2980b9;
+        }
+        .loading {
+            display: none;
+            font-size: 18px;
+            color: #2980b9;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>EMpttap 链</h1>
+        <input type="text" id="message" placeholder="输入消息..." />
+        <input type="number" id="expireTime" placeholder="过期时间(s)..." />
+        <button id="setButton">生成访问链接</button>
+
+        <div id="loading" class="loading">正在生成链接...</div>
+
+        <div id="urlResult" class="result" style="display: none;">
+            <p><strong>访问链接:</strong> <a id="generatedUrl" href="" target="_blank"></a></p>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('setButton').addEventListener('click', async () => {
+            const message = document.getElementById('message').value;
+            const expireTime = document.getElementById('expireTime').value;
+            const loadingElement = document.getElementById('loading');
+            const urlResultElement = document.getElementById('urlResult');
+            const generatedUrlElement = document.getElementById('generatedUrl');
+
+            // Validate input
+            if (!message) {
+                alert("请输入消息！");
+                return;
+            }
+
+            // Show loading animation
+            loadingElement.style.display = "block";
+            urlResultElement.style.display = "none";  // Hide previous result
+
+            try {
+                const response = await fetch('/message', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ message, expireTime })
+                });
+
+                const result = await response.json();
+
+                if (result.url) {
+                    // Extract the key1@key2 part
+                    const keyPart = result.url.split('/').pop();
+
+                    // Get the host and port dynamically
+                    const completeUrl = `http://${window.location.hostname}/message/${keyPart}`;
+
+                    // Display the result
+                    generatedUrlElement.textContent = completeUrl;
+                    generatedUrlElement.href = completeUrl;
+
+                    // Show the URL result
+                    urlResultElement.style.display = "block";
+                } else {
+                    alert("创建链接失败");
+                }
+            } catch (error) {
+                alert("请求失败，请稍后再试");
+            } finally {
+                // Hide loading animation
+                loadingElement.style.display = "none";
+            }
+        });
+    </script>
+</body>
+</html>
